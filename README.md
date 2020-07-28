@@ -1,5 +1,11 @@
 # BiSeNet-wali
 
+Reference:
+
+- BiSeNet (ECCV2018): https://github.com/ooooverflow/BiSeNet
+- Structure Knowledge Distillation (CVPR2019_oral): https://github.com/irfanICMLL/structure_knowledge_distillation
+
+
 ![](res/res18_pi.png)
 
 ![](res/res101.png)
