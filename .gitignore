@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+*/__pycache__
+
+img
+runs
+
+*/*.onnx
+
+z.py
