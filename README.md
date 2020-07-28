@@ -1,5 +1,10 @@
 # BiSeNet-wali
 
+Compress BiSeNet with Structure Knowledge Distillation for Real-time image segmentation on wali-TX2.
+
+This repo is developed for RGB image. BiSeNet-RGBD architure can be accessed [here](https://github.com/Shuai-Xie/Wali-turtlebot).
+
+
 Reference:
 
 - BiSeNet (ECCV2018): https://github.com/ooooverflow/BiSeNet
