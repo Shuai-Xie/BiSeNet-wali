@@ -152,14 +152,13 @@ class BiSeNet(nn.Module):
         res = self.last_conv(self.ffm(sp, cx1, cx2))  # 1/8
 
         # for onnx output or infer mode
-        return res
+        # return res
 
         # for teacher/student training
-        # res1, res2 = self.mid1(cx1), self.mid2(cx2)  # 1/16, 1/16
-        # return [res, res1, res2, cx1, cx2]
+        res1, res2 = self.mid1(cx1), self.mid2(cx2)  # 1/16, 1/16
+        return [res, res1, res2, cx1, cx2]
 
-        # middle sup 应该加在 attention 之后, 使得 auxiliary loss 能辅助训练 arm 模块
-        # 计算 loss 时，再 *8 upsample
+        # 单模型可用 self.training 判断状态
         # if self.training:  # 使用 nn.Module 自带属性判断 training/eval 状态
         #     res1, res2 = self.mid1(cx1), self.mid2(cx2)  # 1/16, 1/16
         #     return [res, res1, res2]  # 1/8, 1/16, 1/16
@@ -171,8 +170,6 @@ class BiSeNet(nn.Module):
 def cmp_infer_time(test_num=20):
     import time
     import itertools
-
-    print('再测一遍')
 
     # 首个 resnet50 预热 GPU
     archs = ['resnet50', 'resnet18', 'resnet50', 'resnet101']

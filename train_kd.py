@@ -17,7 +17,6 @@ from datasets.build_datasets import build_datasets
 
 from model.bisenet import BiSeNet
 
-from utils.calculate_weights import cal_class_weights
 from utils.saver import Saver
 from utils.trainer_kd import Trainer
 from utils.misc import AccCaches, get_curtime, print_model_parm_nums, load_state_dict
@@ -35,8 +34,9 @@ def main():
     print_model_parm_nums(teacher, 'teacher')  # teacher: Number of params: 132.92 M
 
     # 加载 student/teacher 已经训练好的模型
-    load_state_dict(student, ckpt_path='runs/SUNRGBD/res18_inp32_deconv_Jul27_100319/checkpoint.pth.tar')
-    load_state_dict(teacher, ckpt_path='runs/SUNRGBD/res101_inp64_deconv_Jul26_205859/checkpoint.pth.tar')
+    device = f'cuda:{args.gpu_ids}'
+    load_state_dict(student, 'runs/SUNRGBD/res18_inp32_deconv_Jul27_100319/checkpoint.pth.tar', device)
+    load_state_dict(teacher, 'runs/SUNRGBD/res101_inp64_deconv_Jul26_205859/checkpoint.pth.tar', device)
 
     class_weights = None
     if args.use_balanced_weights:  # default false

@@ -9,8 +9,9 @@ import json
 import constants
 
 
-def load_state_dict(model, ckpt_path):
-    state_dict = torch.load(ckpt_path)['state_dict']
+def load_state_dict(model, ckpt_path, device):
+    # 默认在 cuda:0 就容易报错
+    state_dict = torch.load(ckpt_path, map_location=device)['state_dict']
     model.load_state_dict(state_dict)
     print('load', ckpt_path)
 

@@ -194,7 +194,7 @@ class PixelWise_Loss(nn.Module):
 class PairWise_Loss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.criterion = sim_dis_compute  # cos similarity distance
+        self.criterion = sim_dis_compute  # MSE loss, 计算 pixel 之间编码 feature 的相似度
 
     def forward(self, feats_S, feats_T):
         """
@@ -207,29 +207,36 @@ class PairWise_Loss(nn.Module):
         for s, t in zip(feats_S, feats_T):  # B,C,1/16
             t = t.detach()  # context path feature
             B, C, H, W = t.shape
-            patch_h, patch_w = H // 2, W // 2  # max_pool 到 2x2 计算
+            # patch_h, patch_w = H // 2, W // 2  # max_pool 到 2x2 计算
+            patch_h, patch_w = H // 4, W // 4  # 控制输出 feature map 的大小
+            # todo: 可以考虑调小 pool size
             maxpool = nn.MaxPool2d(kernel_size=(patch_w, patch_h), stride=(patch_w, patch_h),
                                    padding=0, ceil_mode=True)
-            loss = self.criterion(maxpool(s), maxpool(t))
+            loss = self.criterion(maxpool(s), maxpool(t))  # 2x2
             losses += loss
         return losses
 
 
 def L2(f_):
-    return (((f_ ** 2).sum(dim=1)) ** 0.5).reshape(f_.shape[0], 1, f_.shape[2], f_.shape[3]) + 1e-8
+    # 每个 pixel 的 C 维度向量代表的 欧氏距离 √(·)^2
+    return (((f_ ** 2).sum(dim=1)) ** 0.5).reshape(f_.shape[0], 1, f_.shape[2], f_.shape[3]) + 1e-8  # B,1,H,W
 
 
 def similarity(feat):
     feat = feat.float()
-    tmp = L2(feat).detach()
+
+    # L2-norm 归一化 (单位向量，计算 cos-dist, 只要 @)
+    tmp = L2(feat).detach()  # B,1,H,W
     feat = feat / tmp
-    feat = feat.reshape(feat.shape[0], feat.shape[1], -1)
-    return torch.einsum('icm,icn->imn', [feat, feat])
+    feat = feat.reshape(feat.shape[0], feat.shape[1], -1)  # B,C,H*W, each pixel
+
+    # mc @ cn -> mn, [B,H*W,H*W] 类似 self-attention, pixel_i 与剩余所有 pixel 的相似度
+    return torch.einsum('icm,icn->imn', [feat, feat])  # [B,H*W,H*W]
 
 
 def sim_dis_compute(f_S, f_T):
-    sim_err = ((similarity(f_T) - similarity(f_S)) ** 2) / ((f_T.shape[-1] * f_T.shape[-2]) ** 2) / f_T.shape[0]
-    sim_dis = sim_err.sum()
+    # 求 mean 即为 each pixel, L2-norm 归一化后 cos-dist 太小, 与 pi-loss 量级差太大
+    sim_dis = torch.mean((similarity(f_T) - similarity(f_S)) ** 2)
     return sim_dis
 
 

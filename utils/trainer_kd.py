@@ -118,7 +118,7 @@ class Trainer:
             self.G_optimizer.step()
 
             train_losses.update(G_loss.item())
-            tbar.set_description('Epoch {}, Train loss: {:.3} = seg {:.3f} + pi {:.3f} + pa {:.3f}'.format(
+            tbar.set_description('Epoch {}, Train loss: {:.3} = seg {:.3f} + pi {:.3f} + pa {:.10f}'.format(
                 epoch, train_losses.avg, segment_losses.avg, pi_losses.avg, pa_losses.avg))
 
             if evaluation:
